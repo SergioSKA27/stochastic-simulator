@@ -62,7 +62,7 @@ with graph_editor_cols[1].popover("Añadir arista",help="Añade una arista al gr
                                                     label=nameedege,
                                                     color=color,
                                                     smooth=True,
-                                                    length=100,)
+                                                    length=150,)
                                                 )
                 #st.write(Edge(source=source, target=target, label=name, color=color).to_dict())
             else:
@@ -89,7 +89,14 @@ else:
 
 #Graph Configuration
 with st.popover("Propiedades de la gráfica",help="Visualiza y edita las propiedades de la gráfica",use_container_width=True):
-    st.graphviz_chart(st.session_state.graph.to_dot())
+    cols = st.columns([0.5,0.5])
+
+    with cols[0].container(border=True):
+        st.subheader("Propiedades")
+        st.write("$$D(G) = "+str(len(st.session_state.graph.get_nodes()))+r"\ \text{vértices}$$")
+        st.write("$$E(G) = "+str(len(st.session_state.graph.get_edges()))+r"\ \text{aristas}$$")
+        st.write(st.session_state.graph.get_adjacency())
+
 
 
 

@@ -32,6 +32,17 @@ class Graph:
 
         return False
 
+    def get_adjacency(self):
+        matrix = []
+        for node in self.nodes:
+            row = {node.id: []}
+            for node2 in self.nodes:
+                if self.in_edges(node.id, node2.id):
+                    row[node.id].append(node2.id)
+
+            matrix.append(row)
+        return matrix
+
     def to_dot(self,t="digraph"):
         dot = f"{t} G {{\n"
         if len(self.edges) == 0:
