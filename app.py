@@ -24,14 +24,14 @@ physiscs_on = graph_editor_cols[1].toggle("Activar físicas", key="physics_on",v
 with graph_editor_cols[1].popover("Añadir nodo",help="Añade un nodo al grafo",use_container_width=True):
 
 
-    name =  st.text_input("Nombre del nodo", key="node_name")
+    name =  st.text_input("Nombre del nodo", key="node_name",max_chars=10)
     shape = st.selectbox("Forma del nodo", options=["circle", "ellipse", "database", "box", "text", "image", "circularImage", "diamond", "dot", "star", "triangle", "triangleDown", "hexagon", "square",], key="node_shape")
     color = st.color_picker("Color del nodo", key="node_color",value="#7BE141")
     if shape == "image" or shape == "circularImage":
         url = st.text_input("URL de la imagen", key="node_url", value="https://www.zooplus.co.uk/magazine/wp-content/uploads/2021/01/striped-grey-kitten.jpg")
     else:
         url = None
-    if st.button("Añadir nodo"):
+    if st.button("Añadir nodo",disabled=len(name) == 0):
         if url is not None:
             if not st.session_state.graph.in_nodes(name):
                 st.session_state.graph.add_node(Node(id=name, label=name,shape=shape,color=color,image=url))
@@ -45,11 +45,12 @@ with graph_editor_cols[1].popover("Añadir nodo",help="Añade un nodo al grafo",
 
 with graph_editor_cols[1].popover("Añadir arista",help="Añade una arista al grafo",use_container_width=True):
 
-    name =  st.text_input("Nombre de la arista", key="edge_name")
-    source = st.selectbox("Nodo origen", options=[node.id for node in st.session_state.graph.get_nodes()], key="edge_source")
-    target = st.selectbox("Nodo destino", options=[node.id for node in st.session_state.graph.get_nodes()], key="edge_target")
+    nameedege =  st.text_input("Nombre de la arista", key="edge_name",max_chars=10)
+    nodelist = [node.id for node in st.session_state.graph.get_nodes()]
+    source = st.selectbox("Nodo origen", options=nodelist, key="edge_source")
+    target = st.selectbox("Nodo destino", options=nodelist, key="edge_target")
     color = st.color_picker("Color de la arista", key="edge_color",value="#000000")
-    if st.button("Añadir arista" ,disabled=st.session_state.graph.is_empty()):
+    if st.button("Añadir arista" ,disabled=st.session_state.graph.is_empty() or len(nameedege) == 0):
         if not st.session_state.graph.in_nodes(source):
             st.error("El nodo origen no existe")
         elif not st.session_state.graph.in_nodes(target):
@@ -58,7 +59,7 @@ with graph_editor_cols[1].popover("Añadir arista",help="Añade una arista al gr
             if not st.session_state.graph.in_edges(source, target):
                 st.session_state.graph.add_edge(Edge(source=source,
                                                     target=target,
-                                                    label=name,
+                                                    label=nameedege,
                                                     color=color,
                                                     smooth=True,
                                                     length=100,)
