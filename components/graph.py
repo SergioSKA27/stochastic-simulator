@@ -2,9 +2,9 @@ import streamlit as st
 from streamlit_agraph import agraph, Node, Edge, Config
 
 class Graph:
-    def __init__(self, nodes: list = [] , edges: list = []):
-        self.nodes = nodes
-        self.edges = edges
+    def __init__(self, nodes: list = None , edges: list = None):
+        self.nodes = nodes if nodes is not None else []
+        self.edges = edges if edges is not None else []
 
     def add_node(self, node: Node):
         self.nodes.append(node)
