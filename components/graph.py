@@ -3,14 +3,19 @@ from streamlit_agraph import agraph, Node, Edge, Config
 
 class Graph:
     def __init__(self, nodes: list = None , edges: list = None):
-        self.nodes = nodes if nodes is not None else []
-        self.edges = edges if edges is not None else []
+        self.nodes: list = nodes if nodes is not None else []
+        self.edges: list = edges if edges is not None else []
+        self._node_set: set = set()
+        self._edge_set: set = set()
 
     def add_node(self, node: Node):
         self.nodes.append(node)
+        self._node_set.add(node.id)
 
     def add_edge(self, edge: Edge):
         self.edges.append(edge)
+        data = edge.to_dict()
+        self._edge_set.add((data["source"], data["to"], data["label"]))
 
     def get_nodes(self):
         return self.nodes
@@ -79,4 +84,16 @@ class Graph:
         else:
             config = Config(**config)
 
-        return agraph(nodes=self.nodes, edges=self.edges, config=config)
+        fragment = agraph(self.nodes, self.edges, config=config)
+        st.write(fragment)
+       
+            
+        
+
+    @property
+    def ssnodes(self):
+        return self._node_set
+    
+    @property
+    def sedges(self):
+        return self._edge_set

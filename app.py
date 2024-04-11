@@ -1,6 +1,6 @@
 import streamlit as st
 from streamlit_agraph import agraph, Node, Edge, Config
-from components import Graph
+from components import StochasticGraph
 import random
 
 
@@ -10,7 +10,10 @@ st.set_page_config(page_title="Graph Editor", page_icon="🧊",layout="wide")
 
 
 if 'graph' not in st.session_state:
-    st.session_state.graph = Graph()
+    st.session_state.graph = StochasticGraph()
+
+if "states_set" not in st.session_state:
+    st.session_state.states_set = set()
 
 
 
@@ -35,39 +38,61 @@ with graph_editor_cols[1].popover("Añadir nodo",help="Añade un nodo al grafo",
         if url is not None:
             if not st.session_state.graph.in_nodes(name):
                 st.session_state.graph.add_node(Node(id=name, label=name,shape=shape,color=color,image=url))
+                st.session_state.states_set.add(name)
             else:
                 st.error("El nodo ya existe")
         else:
             if not st.session_state.graph.in_nodes(name):
                 st.session_state.graph.add_node(Node(id=name, label=name,shape=shape,color=color))
+                st.session_state.states_set.add(name)
             else:
                 st.error("El nodo ya existe")
 
 with graph_editor_cols[1].popover("Añadir arista",help="Añade una arista al grafo",use_container_width=True):
 
-    nameedege =  st.text_input("Nombre de la arista", key="edge_name",max_chars=10)
+    nameedege =  st.number_input("Peso de la arista",key="edge_weight",min_value=0.0,max_value=1.0,step=0.1,format="%.2f")
     nodelist = [node.id for node in st.session_state.graph.get_nodes()]
     source = st.selectbox("Nodo origen", options=nodelist, key="edge_source")
     target = st.selectbox("Nodo destino", options=nodelist, key="edge_target")
     color = st.color_picker("Color de la arista", key="edge_color",value="#000000")
-    if st.button("Añadir arista" ,disabled=st.session_state.graph.is_empty() or len(nameedege) == 0):
-        if not st.session_state.graph.in_nodes(source):
-            st.error("El nodo origen no existe")
-        elif not st.session_state.graph.in_nodes(target):
-            st.error("El nodo destino no existe")
+    if st.checkbox("Crear arista de regreso", key="edge_back"):
+        nameedege2 = st.number_input("Peso de la arista de regreso",key="edge_weight2",min_value=0.0,max_value=1.0,step=0.1,format="%.2f")
+    else:
+        nameedege2 = None
+        
+    if st.button("Añadir arista" ,disabled=st.session_state.graph.is_empty()):
+        if not st.session_state.graph.in_nodes(source) or not st.session_state.graph.in_nodes(target):
+            st.error("El nodo origen o destino no existe!")
         else:
             if not st.session_state.graph.in_edges(source, target):
                 st.session_state.graph.add_edge(Edge(source=source,
                                                     target=target,
-                                                    label=nameedege,
+                                                    label="%0.2f"%nameedege,
                                                     color=color,
                                                     smooth=True,
                                                     length=150,)
                                                 )
-                #st.write(Edge(source=source, target=target, label=name, color=color).to_dict())
+                
+                st.write(Edge(source=source, target=target, label=nameedege, color=color).to_dict())
             else:
                 st.error("La arista ya existe")
+            
+            if nameedege2 is not None and source != target:
+                if not st.session_state.graph.in_edges(target, source):
+                    st.session_state.graph.add_edge(Edge(source=target,
+                                                        target=source,
+                                                        label="%0.2f"%nameedege2,
+                                                        color=color,
+                                                        smooth=True,
+                                                        length=150,)
+                                                    )
+                else:
+                    st.error("La arista de regreso ya existe")
 
+with graph_editor_cols[1].popover("Limpiar grafo",help="Elimina todos los nodos y aristas del grafo",use_container_width=True):
+    if st.button("Limpiar grafo"):
+        st.session_state.graph = StochasticGraph()
+        
 if st.session_state.graph.is_empty():
     with graph_editor_cols[0]:
         st.info("No hay nodos en el grafo")
@@ -82,9 +107,11 @@ else:
                                                     "hierarchical":False
                                                     }
                                                     )
+            
         with tabs[1]:
 
             st.graphviz_chart(st.session_state.graph.to_dot())
+        
 
 
 #Graph Configuration
@@ -99,5 +126,5 @@ with st.popover("Propiedades de la gráfica",help="Visualiza y edita las propied
 
 
 
-
+st.write(st.session_state.graph.ssnodes, st.session_state.graph.sedges)
 
