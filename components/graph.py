@@ -48,6 +48,18 @@ class Graph:
             matrix.append(row)
         return matrix
 
+    def get_incidence(self):
+        matrix = []
+        for edge in self.edges:
+            row = {edge.source: []}
+            for node in self.nodes:
+                if edge.to == node.id:
+                    row[edge.source].append(node.id)
+
+            matrix.append(row)
+        return matrix
+
+
     def to_dot(self,t="digraph"):
         dot = f"{t} G {{\n"
         if len(self.edges) == 0:
@@ -88,7 +100,27 @@ class Graph:
         st.write(fragment)
        
             
+
+    def get_json(self):
+        return {
+            "nodes": [node.to_dict() for node in self.nodes],
+            "edges": [edge.to_dict() for edge in self.edges]
+        }
         
+    def load_json(self, data: dict):
+        self.nodes = [Node(**node) for node in data["nodes"]]
+        self.edges = []
+        for edge in data["edges"]:
+            source = edge["source"]
+            target = edge["to"]
+            label = edge["label"]
+            del edge["source"]
+            del edge["to"]
+            del edge["label"]
+            del edge["from"]
+            
+            self.add_edge(Edge(source=source, target=target, label=label, **edge))
+            
 
     @property
     def ssnodes(self):

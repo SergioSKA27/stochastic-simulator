@@ -1,8 +1,9 @@
 import streamlit as st
-from streamlit_agraph import agraph, Node, Edge, Config
+from streamlit_agraph import Node, Edge
 from components import StochasticGraph
-import random
-
+import json
+import pandas as pd
+import sympy as sp
 
 st.set_page_config(page_title="Graph Editor", page_icon="🧊",layout="wide")
 
@@ -15,6 +16,12 @@ if 'graph' not in st.session_state:
 if "states_set" not in st.session_state:
     st.session_state.states_set = set()
 
+if "proyectname" not in st.session_state:
+    st.session_state.proyectname = "Proyecto"
+
+proyect_name = st.text_input("Nombre del proyecto", key="proyect_name",max_chars=20,value=st.session_state.proyectname)
+if len(proyect_name) > 0 and proyect_name != st.session_state.proyectname:
+    st.session_state.proyectname = proyect_name
 
 
 st.title("M@C Grapher",help="Crea y edita grafos de manera sencilla")
@@ -92,7 +99,16 @@ with graph_editor_cols[1].popover("Añadir arista",help="Añade una arista al gr
 with graph_editor_cols[1].popover("Limpiar grafo",help="Elimina todos los nodos y aristas del grafo",use_container_width=True):
     if st.button("Limpiar grafo"):
         st.session_state.graph = StochasticGraph()
-        
+
+with graph_editor_cols[1].popover("Cargar Configuración",help="Carga la configuración de un grafo previamente guardado",use_container_width=True):
+    file = st.file_uploader("Selecciona un archivo JSON",type=["json"])
+    if file is not None:
+        data = json.load(file)
+        st.session_state.graph = StochasticGraph()
+        st.session_state.graph.load_json(data)
+        st.session_state.proyectname = file.name.split(".")[0]
+    
+
 if st.session_state.graph.is_empty():
     with graph_editor_cols[0]:
         st.info("No hay nodos en el grafo")
@@ -111,9 +127,10 @@ else:
         with tabs[1]:
 
             st.graphviz_chart(st.session_state.graph.to_dot())
-        
 
 
+if st.button("Mostrar propiedades",disabled=st.session_state.graph.is_empty()):
+    st.session_state.graph.render_properties()
 #Graph Configuration
 with st.popover("Propiedades de la gráfica",help="Visualiza y edita las propiedades de la gráfica",use_container_width=True):
     cols = st.columns([0.5,0.5])
@@ -125,6 +142,9 @@ with st.popover("Propiedades de la gráfica",help="Visualiza y edita las propied
         st.write(st.session_state.graph.get_adjacency())
 
 
-
-st.write(st.session_state.graph.ssnodes, st.session_state.graph.sedges)
+st.write(st.session_state.graph.get_canonical_form())
+st.download_button("Descargar configuración",
+                   data=json.dumps(st.session_state.graph.get_json()),
+                   file_name=str(st.session_state.proyectname+".json"),
+                   mime="application/json")
 
