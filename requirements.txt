@@ -1,1 +1,3 @@
 streamlit-agraph
+plotly
+sympy
