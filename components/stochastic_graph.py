@@ -222,18 +222,26 @@ class StochasticGraph(Graph):
     
     def get_absorbing_states(self):
         tdf = self.get_transition_matrix_df()
-        states = []
         for row in tdf.iterrows():
             if sum(list(map(int,row[1].values))) == 1:
-                states.append(row)
-        return states
-    
+                tdf.drop(row[0],axis=0,inplace=True)
+
+        return tdf
+
     def get_canonical_form(self):
+        #NOt working  yet :(
         tdf = self.get_transition_matrix_df()
         absorbing = self.get_absorbing_states()
-        return absorbing
+        if len(absorbing) > 0:
+            for row in absorbing.iterrows():
+                tdf.drop(row[0],axis=0,inplace=True)
 
-
+            tdf_non_absorbing = tdf
+            for row in absorbing.iterrows():
+                tdf_non_absorbing.drop(row[0],axis=0,inplace=True)
+            return tdf,np.eye(len(absorbing)),tdf_non_absorbing
+        else:
+            return tdf
     def simulate(self,initial_state,steps):
         tdf = self.get_transition_matrix_df()
         states = []
