@@ -131,6 +131,10 @@ else:
 
 if st.button("Mostrar propiedades",disabled=st.session_state.graph.is_empty()):
     st.session_state.graph.render_properties()
+
+if st.button("Calculadora de Expresiones",disabled=st.session_state.graph.is_empty()):
+    st.session_state.graph.render_expression_calculation()
+
 #Graph Configuration
 with st.popover("Propiedades de la gráfica",help="Visualiza y edita las propiedades de la gráfica",use_container_width=True):
     cols = st.columns([0.5,0.5])

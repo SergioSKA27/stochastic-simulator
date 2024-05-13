@@ -168,7 +168,24 @@ class StochasticGraph(Graph):
                 st.success("La cadena es ergódica")
             else:
                 st.error("La cadena no es ergódica")
+
+    @st.experimental_dialog("Calculo de Expresiones",width="large")
+    def render_expression_calculation(self):
+        st.write("Calculo de Expresiones")
+        tdf = self.get_transition_matrix_df()
+        st.write("Matriz de Transición")
+        st.latex("T = "+ sp.latex(sp.Matrix(tdf.to_numpy())))
+        with st.expander("Ver Matriz con Indicadores"):
+            st.write(tdf)
     
+        expr = st.text_area("Expresión",value="T**2")
+        symexp = sp.parse_expr(expr,transformations="all")
+        
+        if st.button("Calcular"):
+            result = symexp.subs("T",sp.Matrix(tdf.to_numpy()))
+            st.latex(sp.latex(symexp)+" = "+sp.latex(result))
+        
+        
     def is_regular_chain(self,limit=1000):
         tdf = self.get_numpy_transition_matrix()
         logs = []

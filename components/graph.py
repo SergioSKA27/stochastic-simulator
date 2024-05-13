@@ -99,8 +99,6 @@ class Graph:
         fragment = agraph(self.nodes, self.edges, config=config)
         st.write(fragment)
        
-            
-
     def get_json(self):
         return {
             "nodes": [node.to_dict() for node in self.nodes],
