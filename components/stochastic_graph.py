@@ -1,10 +1,10 @@
-from .graph import Graph
-import pandas as pd
-import sympy as sp
 import numpy as np
+import pandas as pd
 import streamlit as st
-
+import sympy as sp
 from plotly import graph_objects as go
+
+from .graph import Graph
 
 x='''def is_ergodic_chain(self):
         tdf = self.get_transition_matrix_df()
@@ -232,3 +232,35 @@ class StochasticGraph(Graph):
         tdf = self.get_transition_matrix_df()
         absorbing = self.get_absorbing_states()
         return absorbing
+
+
+    def simulate(self,initial_state,steps):
+        tdf = self.get_transition_matrix_df()
+        states = []
+        current_state = initial_state
+        for _ in range(steps):
+            states.append(current_state)
+            current_state = np.random.choice(tdf.columns,p=tdf.loc[current_state])
+        return states
+
+    @st.experimental_dialog("Simulación de la Cadena de Markov",width="large")
+    def render_simulation(self):
+        st.write("Simulación de la Cadena de Markov")
+        tdf = self.get_transition_matrix_df()
+        st.write("Matriz de Transición")
+        st.latex("T = "+ sp.latex(sp.Matrix(tdf.to_numpy())))
+        with st.expander("Ver Matriz con Indicadores"):
+            st.write(tdf)
+
+        initial_state = st.selectbox("Estado Inicial",list(tdf.columns))
+        steps = st.slider("Pasos",1,1000,10)
+
+        states = self.simulate(initial_state,steps)
+        st.write("Estados")
+        st.write(states)
+
+        st.write("Histograma de Estados")
+        fig = go.Figure()
+        fig.add_trace(go.Histogram(x=states))
+        st.plotly_chart(fig)
+
