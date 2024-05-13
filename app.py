@@ -2,6 +2,7 @@ import streamlit as st
 from streamlit_agraph import Node, Edge
 from components import StochasticGraph
 import json
+from os import listdir
 
 st.set_page_config(page_title="Graph Editor", page_icon="🧊",layout="wide")
 
@@ -18,11 +19,11 @@ if "proyectname" not in st.session_state:
     st.session_state.proyectname = "Proyecto"
 
 proyect_name = st.text_input("Nombre del proyecto", key="proyect_name",max_chars=20,value=st.session_state.proyectname)
-if len(proyect_name) > 0 and proyect_name != st.session_state.proyectname:
+if len(proyect_name) > 0:
     st.session_state.proyectname = proyect_name
 
 
-st.title("M@C Grapher",help="Crea y edita grafos de manera sencilla")
+st.title("MARKOV CHAIN STUDIO",help="Crea y simula cadenas de Markov de manera interactiva")
 graph_editor_cols = st.columns([0.7,0.3])
 
 
@@ -105,7 +106,16 @@ with graph_editor_cols[1].popover("Cargar Configuración",help="Carga la configu
         st.session_state.graph = StochasticGraph()
         st.session_state.graph.load_json(data)
         st.session_state.proyectname = file.name.split(".")[0]
-    
+
+with graph_editor_cols[1].popover("Cargar Ejemplo",help="Carga un grafo de ejemplo",use_container_width=True):
+    fileslist = listdir("examples")
+    file = st.selectbox("Selecciona un archivo de ejemplo",options=fileslist)
+    if st.button("Cargar ejemplo"):
+        with open("examples/"+file) as f:
+            data = json.load(f)
+            st.session_state.graph = StochasticGraph()
+            st.session_state.graph.load_json(data)
+            st.session_state.proyectname = file.split(".")[0]
 
 if st.session_state.graph.is_empty():
     with graph_editor_cols[0]:
@@ -129,28 +139,16 @@ else:
 
 configcols = st.columns(3)
 
-if configcols[0].button("Mostrar propiedades",disabled=st.session_state.graph.is_empty()):
+if configcols[0].button("Mostrar propiedades",disabled=st.session_state.graph.is_empty(),use_container_width=True):
     st.session_state.graph.render_properties()
 
-if configcols[1].button("Calculadora de Expresiones",disabled=st.session_state.graph.is_empty()):
+if configcols[1].button("Calculadora de Expresiones",disabled=st.session_state.graph.is_empty(),use_container_width=True):
     st.session_state.graph.render_expression_calculation()
 
-if configcols[2].button("Simulación de Markov",disabled=st.session_state.graph.is_empty()):
+if configcols[2].button("Simulación de Markov",disabled=st.session_state.graph.is_empty(),use_container_width=True):
     st.session_state.graph.render_simulation()
 
-#Graph Configuration
-with st.popover("Propiedades de la gráfica",help="Visualiza y edita las propiedades de la gráfica",use_container_width=True):
-    cols = st.columns([0.5,0.5])
-
-    with cols[0].container(border=True):
-        st.subheader("Propiedades")
-        st.write("$$D(G) = "+str(len(st.session_state.graph.get_nodes()))+r"\ \text{vértices}$$")
-        st.write("$$E(G) = "+str(len(st.session_state.graph.get_edges()))+r"\ \text{aristas}$$")
-        st.write(st.session_state.graph.get_adjacency())
-
-
-st.write(st.session_state.graph.get_canonical_form())
-st.download_button("Descargar configuración",
+graph_editor_cols[1].download_button("Descargar configuración",
                    data=json.dumps(st.session_state.graph.get_json()),
                    file_name=str(st.session_state.proyectname+".json"),
                    mime="application/json")
